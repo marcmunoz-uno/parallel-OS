@@ -46,31 +46,87 @@ services:
       - web_fingerprint
       - leak_scan
       - nuclei_exposures
-      - traffic_capture       # stub in v0.0.1
-      - osint_run             # stub in v0.0.1
+      - traffic_capture       # stub in v0.0.2
+      - osint_run             # stub in v0.0.2 — generic dispatch over the ~80-tool allowlist
+    # Source of truth: services/kali-factory/runtimes/kali/tools.json
+    # `shell_blocklist` and src/kali_factory/policy/allowlist.py BLOCKED_TOOLS.
+    # Categories below — see the full list in the kali-factory repo.
     forbidden:
       tools:
+        # exploit / payload frameworks
         - metasploit
         - msfvenom
         - msfconsole
         - sqlmap
+        - commix
+        - xsser
+        - xsstrike
+        - weevely
+        - beef
+        - setoolkit
+        # credential cracking
         - hashcat
         - john
-        - aircrack-ng
-        - airmon-ng
         - hydra
         - medusa
         - ncrack
+        - patator
+        - kerbrute
+        # wireless attacks
+        - aircrack-ng
+        - airmon-ng
+        - airodump-ng
+        - kismet
+        - reaver
+        - wifite
+        # active MITM / network spoofing
+        - ettercap
+        - bettercap
+        - mitm6
+        - dsniff
+        - dnschef
+        - dnsspoof
+        - arpspoof
+        - macchanger
+        # noisy web vuln scanners
         - nikto
         - wpscan
+        # post-exploitation / AD
         - responder
         - crackmapexec
+        - nxc
+        - evil-winrm
+        - bloodhound
+        - impacket-secretsdump
+        - impacket-psexec
+        - impacket-wmiexec
+        - impacket-smbexec
+        # exploit databases
+        - exploitdb
+        - searchsploit
+        # router exploits
+        - routersploit
+        # C2 frameworks
+        - empire
+        - covenant
+        - mythic
+        - pupy
+        # payload generators
+        - thefatrat
+        - veil
+        # tunneling / pivoting (offensive context)
+        - chisel
+        - ligolo-ng
+        - gost
+        # misc offensive
+        - thc-ipv6
       nuclei_template_dirs:
         - cves/
         - vulnerabilities/
         - default-logins/
         - fuzzing/
         - exploits/
+        - network/
     agent_doc: services/kali-factory/START_HERE_FOR_AGENTS.md
     deployment_doc: services/kali-factory/DEPLOYMENT.md
 
