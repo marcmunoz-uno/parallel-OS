@@ -1,0 +1,97 @@
+# parallel-OS service manifest
+#
+# Each entry describes a runtime/service that an AI agent can call from this host.
+# The agent reads this file (directly or through `parallel_os.services.load()`) to
+# discover what's available, where to authenticate, and where the per-service
+# agent contract lives.
+#
+# Conventions:
+#   - host        : where the service binds. Always 127.0.0.1 unless explicitly fronted.
+#   - auth        : "bearer" | "none" | "<custom>"
+#   - token_file  : absolute path on the host where the bearer token lives (chmod 0600)
+#   - agent_doc   : path (relative to repo root) to the agent-facing usage guide
+#   - openapi     : path / URL to the OpenAPI spec, if served
+#   - mcp         : how the agent reaches this service over MCP (stdio command or socket)
+
+version: 1
+
+services:
+
+  - name: kali-factory
+    role: osint-and-recon
+    status: pre-alpha
+    repo: https://github.com/marcmunoz-uno/Kali-Factory-Instructions
+    submodule_path: services/kali-factory
+    description: |
+      Host-local control plane that gives agents bounded, allowlisted access to
+      Kali Linux OSINT tooling. Typed jobs only — no shell. Three-layer
+      allowlist (Pydantic / policy module / Dockerfile). Ephemeral hardened
+      Docker containers per job.
+    api:
+      host: 127.0.0.1
+      port: 8081
+      base_url: http://127.0.0.1:8081
+      auth: bearer
+      token_file: ${KALI_FACTORY_API_TOKEN_FILE:-./services/kali-factory/.secrets/api_token}
+      health: GET /health
+      tools_endpoint: GET /tools
+      submit_endpoint: POST /jobs
+      poll_endpoint: GET /jobs/{job_id}
+    mcp:
+      transport: stdio
+      command: ./services/kali-factory/scripts/start-mcp.sh
+    jobs:
+      - kali_probe
+      - subdomain_enum
+      - web_fingerprint
+      - leak_scan
+      - nuclei_exposures
+      - traffic_capture       # stub in v0.0.1
+      - osint_run             # stub in v0.0.1
+    forbidden:
+      tools:
+        - metasploit
+        - msfvenom
+        - msfconsole
+        - sqlmap
+        - hashcat
+        - john
+        - aircrack-ng
+        - airmon-ng
+        - hydra
+        - medusa
+        - ncrack
+        - nikto
+        - wpscan
+        - responder
+        - crackmapexec
+      nuclei_template_dirs:
+        - cves/
+        - vulnerabilities/
+        - default-logins/
+        - fuzzing/
+        - exploits/
+    agent_doc: services/kali-factory/START_HERE_FOR_AGENTS.md
+    deployment_doc: services/kali-factory/DEPLOYMENT.md
+
+  # GPU Factory is a sibling service that lives in its own repo. It is not
+  # vendored here as a submodule because parallel-OS's compute story is
+  # orthogonal (CUDA / inference) — but agents discover it through the same
+  # manifest pattern and call it the same way.
+  - name: gpu-factory
+    role: cuda-and-inference
+    status: external
+    repo: https://github.com/marcmunoz-uno/GPU-Factory-Instructions
+    submodule_path: null
+    description: |
+      Host-local control plane that distributes GPU/CUDA access on the DGX
+      Spark. Same pattern as kali-factory (typed jobs, bearer auth, RQ worker)
+      but the runtime is CUDA tooling instead of OSINT.
+    api:
+      host: 127.0.0.1
+      port: 8080
+      base_url: http://127.0.0.1:8080
+      auth: bearer
+      token_file: ${GPU_FACTORY_API_TOKEN_FILE:-/etc/gpu-factory/api_token}
+      health: GET /health
+    agent_doc: null   # see the GPU Factory repo's own agent guide

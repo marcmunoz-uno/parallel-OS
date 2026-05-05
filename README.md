@@ -59,9 +59,30 @@ See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full design.
 
 But the host is interchangeable. Anything running Docker + Python 3.11+ works.
 
+## Included services
+
+parallel-OS is the **parent package** that consolidates concrete runtime services. Each service is a real, runnable control plane wrapping one OS / one tool surface. They are vendored as git submodules under `services/` so an AI agent can browse the entire surface from a single repo.
+
+| Service | Role | Default port | Status |
+|---|---|---|---|
+| [`services/kali-factory/`](./services/kali-factory) | OSINT / recon (Kali Linux userland, allowlisted) | `127.0.0.1:8081` | pre-alpha |
+| `gpu-factory` *(external)* | CUDA / GPU inference on the DGX Spark | `127.0.0.1:8080` | running |
+
+The machine-readable index is [`services/MANIFEST.yaml`](./services/MANIFEST.yaml). Agents should read the manifest, not hardcode service URLs. See [`START_HERE_FOR_AGENTS.md`](./START_HERE_FOR_AGENTS.md) for the consolidated agent contract.
+
+```python
+import parallel_os
+
+m = parallel_os.load()                   # parses services/MANIFEST.yaml
+kali = m.get("kali-factory")
+print(kali.api.base_url)                 # http://127.0.0.1:8081
+print(kali.jobs)                         # ['kali_probe', 'subdomain_enum', ...]
+token = kali.read_token()                # reads .secrets/api_token (chmod 0600)
+```
+
 ## Status
 
-Early design phase. Read the README, file an issue with feedback, watch the repo. v0.0.x will be working concept code. v0.1 will be the first runtime (Kali) end-to-end.
+Early design phase. v0.0.1 was the architecture skeleton. v0.0.2 wires Kali Factory in as the first concrete service via submodule + manifest. v0.1 will be the first runtime end-to-end with the SDK fully functional.
 
 ## Roadmap
 

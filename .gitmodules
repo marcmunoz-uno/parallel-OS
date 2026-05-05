@@ -1,0 +1,3 @@
+[submodule "services/kali-factory"]
+	path = services/kali-factory
+	url = https://github.com/marcmunoz-uno/Kali-Factory-Instructions.git
