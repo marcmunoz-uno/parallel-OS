@@ -1,0 +1,73 @@
+{
+  "runtime": "kali",
+  "image_version": "kali-rolling-2026-q2",
+  "_comment": "Allowlist for the Kali runtime. OSINT + recon + traffic capture only. No exploitation, no credential cracking, no wireless. Expand only with deliberate review.",
+  "shell_allowlist": [
+    "amass", "whatweb", "gobuster", "wfuzz",
+    "linkfinder", "secretfinder", "arjun",
+    "trufflehog", "nuclei",
+    "mitmproxy", "mitmdump",
+    "dig", "nslookup", "dnsenum",
+    "curl", "jq", "python3"
+  ],
+  "shell_blocklist": [
+    "msfconsole", "msfvenom", "sqlmap",
+    "hashcat", "john", "aircrack-ng",
+    "metasploit", "exploitdb", "searchsploit",
+    "hydra", "medusa", "ncrack",
+    "nikto", "wpscan",
+    "responder", "impacket-*", "crackmapexec",
+    "chisel", "ligolo-ng"
+  ],
+  "tools": {
+    "amass.enum": {
+      "binary": "amass",
+      "args_template": ["enum", "-d", "{domain}", "-o", "{output_path}"],
+      "passive_only": true,
+      "max_runtime_sec": 600,
+      "max_concurrent_per_agent": 2
+    },
+    "whatweb.fingerprint": {
+      "binary": "whatweb",
+      "args_template": ["--no-errors", "--log-json={output_path}", "{url}"],
+      "max_runtime_sec": 60,
+      "max_concurrent_per_agent": 5
+    },
+    "gobuster.dir": {
+      "binary": "gobuster",
+      "args_template": ["dir", "-u", "{url}", "-w", "{wordlist}", "-q", "-o", "{output_path}"],
+      "max_runtime_sec": 300,
+      "max_concurrent_per_agent": 1,
+      "rate_limit_req_per_sec": 10,
+      "_note": "rate-limited by default to avoid hammering target servers"
+    },
+    "linkfinder.scan": {
+      "binary": "python3",
+      "args_template": ["-m", "linkfinder", "-i", "{js_url_or_path}", "-o", "{output_path}"],
+      "max_runtime_sec": 120
+    },
+    "trufflehog.git": {
+      "binary": "trufflehog",
+      "args_template": ["github", "--org={org}", "--json"],
+      "max_runtime_sec": 1800
+    },
+    "nuclei.exposures_only": {
+      "binary": "nuclei",
+      "args_template": ["-u", "{url}", "-t", "exposures/", "-jsonl", "-o", "{output_path}"],
+      "blocked_template_dirs": [
+        "cves/",
+        "vulnerabilities/",
+        "default-logins/",
+        "fuzzing/"
+      ],
+      "max_runtime_sec": 300,
+      "_note": "ONLY safe info-disclosure templates allowed; CVE/exploit templates explicitly blocked"
+    },
+    "mitmproxy.capture": {
+      "binary": "mitmdump",
+      "args_template": ["-q", "-w", "{output_capture_path}", "--listen-port", "{port}"],
+      "max_runtime_sec": 1800,
+      "_note": "passive capture only; agent must use its own browser/proxy config to drive traffic through it"
+    }
+  }
+}
