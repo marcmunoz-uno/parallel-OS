@@ -151,3 +151,47 @@ services:
       token_file: ${GPU_FACTORY_API_TOKEN_FILE:-/etc/gpu-factory/api_token}
       health: GET /health
     agent_doc: null   # see the GPU Factory repo's own agent guide
+
+  # Python-ML runtime lives in-tree at runtimes/python-ml/. It does not yet
+  # have a wrapping service (FastAPI/RQ/bearer-auth/MCP) — agents call it
+  # by spawning the image directly through Docker until the service shape
+  # is wired. When that happens this entry will gain an `api:` block and
+  # likely a submodule_path for a Python-ML-Factory-Instructions repo.
+  - name: python-ml
+    role: data-science-and-ml
+    status: image-only
+    repo: null
+    submodule_path: null
+    runtime_image: python-ml/data:latest
+    runtime_dockerfile: runtimes/python-ml/Dockerfile
+    description: |
+      Sandboxed Python 3.12 with the standard scientific/ML stack — numpy,
+      pandas, scipy, scikit-learn, torch (CPU), transformers, sentence-
+      transformers, polars, duckdb, xgboost, lightgbm, faiss-cpu, plus
+      visualization (matplotlib/seaborn/plotly) and Jupyter. Unit of work
+      is Python code; the container is the security boundary.
+    libraries:
+      numerics: [numpy, scipy, sympy]
+      dataframes: [pandas, polars, pyarrow, duckdb]
+      classical_ml: [scikit-learn, xgboost, lightgbm, statsmodels]
+      deep_learning: [torch, torchvision]
+      nlp_and_embeddings: [transformers, sentence-transformers, tokenizers, safetensors, datasets]
+      vector_stores: [faiss-cpu, chromadb-client]
+      viz: [matplotlib, seaborn, plotly]
+    container_constraints:
+      user: "65534:nogroup"
+      cap_drop: [ALL]
+      read_only_rootfs: true
+      tmpfs: [/tmp, /work]
+      no_host_volumes_default: true
+      network: egress-allowed
+      default_memory_limit_gb: 8
+      default_cpu_limit: 4
+      default_max_runtime_sec: 1800
+    planned_jobs:
+      - python_run         # arbitrary script execution in sandbox
+      - embed              # sentence-transformers embeddings
+      - dataframe_op       # declarative pandas/polars chain
+      - train_sklearn      # fit estimator, persist artifact, return metrics
+      - predict            # load artifact, run inference
+    agent_doc: runtimes/python-ml/README.md

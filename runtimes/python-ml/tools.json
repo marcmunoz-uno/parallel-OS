@@ -1,0 +1,101 @@
+{
+  "runtime": "python-ml",
+  "image_version": "python-ml-2026-q2",
+  "scope": "data-science-and-ml",
+  "python_version": "3.12",
+  "_comment": "Python ML runtime. Unlike kali-factory, the unit of work is Python code — this manifest describes available libraries, not a shell-binary allowlist. The container itself is the security boundary (non-root, dropped caps, read-only rootfs, tmpfs /work, no host volumes by default).",
+
+  "libraries": {
+    "numerics": [
+      "numpy",
+      "scipy",
+      "sympy"
+    ],
+    "dataframes": [
+      "pandas",
+      "polars",
+      "pyarrow",
+      "duckdb"
+    ],
+    "classical_ml": [
+      "scikit-learn",
+      "xgboost",
+      "lightgbm",
+      "statsmodels"
+    ],
+    "deep_learning": [
+      "torch",
+      "torchvision"
+    ],
+    "nlp_and_embeddings": [
+      "transformers",
+      "sentence-transformers",
+      "tokenizers",
+      "safetensors",
+      "datasets"
+    ],
+    "vector_stores": [
+      "faiss-cpu",
+      "chromadb-client"
+    ],
+    "viz": [
+      "matplotlib",
+      "seaborn",
+      "plotly"
+    ],
+    "graph": [
+      "networkx"
+    ],
+    "io_and_http": [
+      "requests",
+      "httpx",
+      "pydantic",
+      "tqdm"
+    ],
+    "interactive": [
+      "jupyterlab",
+      "ipykernel",
+      "ipython"
+    ]
+  },
+
+  "shell_allowlist": [
+    "python3", "pip3", "jupyter", "ipython"
+  ],
+
+  "container_constraints": {
+    "user": "65534:nogroup",
+    "cap_drop": ["ALL"],
+    "read_only_rootfs": true,
+    "tmpfs": ["/tmp", "/work"],
+    "no_host_volumes_default": true,
+    "network": "egress-allowed",
+    "default_memory_limit_gb": 8,
+    "default_cpu_limit": 4,
+    "default_max_runtime_sec": 1800
+  },
+
+  "_planned_jobs": {
+    "_comment": "These are the wired job types for the python-ml service when it lands. v0.0.4 ships the image; the service shape comes next.",
+    "python_run": {
+      "description": "Execute a Python script with optional argv; capture stdout, stderr, return JSON-serializable result if the script defines `result`.",
+      "args": ["script_path_or_inline", "stdin_data?", "max_runtime_sec"]
+    },
+    "embed": {
+      "description": "Run sentence-transformers on a list of strings, return vectors.",
+      "args": ["model", "texts", "max_runtime_sec"]
+    },
+    "dataframe_op": {
+      "description": "Apply a declarative pandas/polars op chain to a dataset, return summary or write to /work.",
+      "args": ["input_uri", "ops", "output_uri?"]
+    },
+    "train_sklearn": {
+      "description": "Fit a sklearn estimator on a dataset, persist artifact, return metrics.",
+      "args": ["dataset_uri", "estimator_spec", "metric"]
+    },
+    "predict": {
+      "description": "Load a persisted model artifact, run inference on inputs, return predictions.",
+      "args": ["model_uri", "inputs"]
+    }
+  }
+}

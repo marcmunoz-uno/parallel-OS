@@ -37,8 +37,9 @@ This document is the **single place** to learn what's available. Read [`services
 
 | Service | What it does | Best for |
 |---|---|---|
-| [`kali-factory`](./services/kali-factory) | Allowlisted Kali OSINT/recon (amass, whatweb, trufflehog, nuclei-exposures) | passive recon, attack surface mapping, leaked-credential hunting against repos you own |
+| [`kali-factory`](./services/kali-factory) | Allowlisted Kali OSINT/recon (~80 tools: ProjectDiscovery suite, OSINT frameworks, trufflehog/gitleaks, nuclei-exposures) | passive recon, attack surface mapping, leaked-credential hunting against repos you own |
 | `gpu-factory` *(external)* | Allowlisted CUDA / GPU inference jobs | embeddings, batched LLM inference, vector workloads |
+| [`python-ml`](./runtimes/python-ml) *(image-only, no service yet)* | Python 3.12 + numpy / pandas / scipy / scikit-learn / torch (CPU) / transformers / sentence-transformers / polars / duckdb / xgboost / lightgbm / faiss-cpu | dataframe work, embeddings, classical ML training, gradient boosting, NLP pipelines |
 
 For each service, read its **per-service agent guide** before sending traffic:
 

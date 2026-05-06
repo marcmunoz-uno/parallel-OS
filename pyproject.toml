@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "parallel-os"
-version = "0.0.3"
+version = "0.0.4"
 description = "Multi-OS execution framework for AI agents — spawn any operating system as an MCP-wrapped runtime"
 readme = "README.md"
 requires-python = ">=3.11"

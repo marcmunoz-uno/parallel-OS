@@ -63,10 +63,11 @@ But the host is interchangeable. Anything running Docker + Python 3.11+ works.
 
 parallel-OS is the **parent package** that consolidates concrete runtime services. Each service is a real, runnable control plane wrapping one OS / one tool surface. They are vendored as git submodules under `services/` so an AI agent can browse the entire surface from a single repo.
 
-| Service | Role | Default port | Status |
+| Service / runtime | Role | Default port | Status |
 |---|---|---|---|
 | [`services/kali-factory/`](./services/kali-factory) | OSINT / recon (Kali Linux userland, allowlisted) | `127.0.0.1:8081` | pre-alpha |
 | `gpu-factory` *(external)* | CUDA / GPU inference on the DGX Spark | `127.0.0.1:8080` | running |
+| [`runtimes/python-ml/`](./runtimes/python-ml) | Python 3.12 + numpy / pandas / scipy / scikit-learn / torch / transformers / polars / duckdb | *image-only* | image ready, service wrapper planned |
 
 The machine-readable index is [`services/MANIFEST.yaml`](./services/MANIFEST.yaml). Agents should read the manifest, not hardcode service URLs. See [`START_HERE_FOR_AGENTS.md`](./START_HERE_FOR_AGENTS.md) for the consolidated agent contract.
 
