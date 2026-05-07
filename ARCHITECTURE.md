@@ -8,6 +8,58 @@
 4. **Allowlist-first.** Each runtime has an explicit tool allowlist. No tool is callable unless it's declared.
 5. **Pluggable backend.** Docker first; podman, Firecracker microVMs, gVisor, or remote SSH targets later.
 
+## Explicit system abstraction
+
+`parallel-OS` defines a strict two-layer model:
+
+1. **Parent orchestration layer (`parallel-OS`)**
+   - Owns service discovery, manifest parsing, policy wiring, and agent-facing contracts.
+   - Does not directly implement domain-specific execution logic (OSINT, CUDA orchestration, etc.).
+2. **Runtime service layer (kali-factory, gpu-factory, future runtimes)**
+   - Owns actual job execution, safety gates, and domain-specific controls.
+   - Must expose typed jobs and structured responses.
+
+This boundary is non-negotiable and is what allows one agent workflow to compose multiple runtimes without runtime-specific hardcoding.
+
+## Methodology: contract-first runtime integration
+
+When introducing or updating a runtime service, the workflow is:
+
+1. **Define contract**
+   - Enumerate typed jobs (name, input schema, output schema, limits).
+   - Define auth mechanism and token-file behavior.
+   - Define MCP exposure strategy (tool names and mappings).
+2. **Implement safe executor**
+   - Build allowlisted execution paths only.
+   - Reject unknown job types and malformed arguments.
+   - Enforce timeouts/concurrency/resource bounds.
+3. **Register in manifest**
+   - Add canonical service ID and endpoint.
+   - Declare supported jobs and capability metadata.
+   - Add status and operational notes.
+4. **Validate on target host class**
+   - Run health checks and smoke jobs.
+   - Verify architecture compatibility (for example ARM64 on DGX Spark).
+   - Verify policy behavior under failure and load.
+5. **Document agent usage**
+   - Update `START_HERE_FOR_AGENTS.md` with invocation patterns.
+   - Ensure agents can discover and use the runtime only from manifest data.
+
+This methodology keeps service additions repeatable and auditable.
+
+## Canonical control flow
+
+The expected request lifecycle is:
+
+1. Agent loads manifest via `parallel_os.load()`.
+2. Agent resolves service by ID (`m.get("kali-factory")`, `m.get("gpu-factory")`).
+3. Agent reads auth token from declared token file.
+4. Agent submits typed job through service API or MCP adapter.
+5. Service validates input and policy, then executes allowlisted action.
+6. Service returns structured result, and logs execution metadata.
+
+If any step is not deterministic or typed, the integration is considered incomplete.
+
 ## Components
 
 ### 1. Host orchestrator

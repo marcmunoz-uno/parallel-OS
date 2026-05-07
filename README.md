@@ -81,6 +81,72 @@ print(kali.jobs)                         # ['kali_probe', 'subdomain_enum', ...]
 token = kali.read_token()                # reads .secrets/api_token (chmod 0600)
 ```
 
+## Abstraction model and methodology (explicit contract)
+
+This section defines exactly how `parallel-OS` is intended to work across all runtimes, including external services such as `gpu-factory`.
+
+### 1) Core abstraction
+
+`parallel-OS` is a **runtime control plane**, not a single runtime implementation.
+
+- A **runtime** is an MCP-addressable tool surface backed by one OS userland (containerized or external service).
+- A **service** is the concrete control API that owns job execution for that runtime.
+- The **manifest** is the source of truth that maps service IDs to endpoints, capabilities, auth material, and job names.
+- The **SDK** is a thin resolver that loads manifest entries and gives agents stable handles (`m.get("kali-factory")`).
+
+In short: `parallel-OS` standardizes discovery, policy, and invocation; each runtime service standardizes execution for its OS/tool domain.
+
+### 2) Methodology (build and operate)
+
+Every runtime or service should follow the same lifecycle:
+
+1. **Declare** capability in `services/MANIFEST.yaml` (id, API base URL, token file, jobs, status).
+2. **Constrain** execution via typed jobs and allowlists (no generic arbitrary command endpoint).
+3. **Expose** the same capability over MCP for MCP-capable agents.
+4. **Enforce** host policy (auth, TTL, quotas, concurrency, network boundaries, auditability).
+5. **Observe** with health checks and structured job status transitions.
+
+This keeps all runtimes consistent while still allowing OS-specific internals.
+
+### 3) Architecture contract between parent and services
+
+`parallel-OS` is responsible for:
+
+- service discovery and capability indexing
+- manifest parsing and typed accessors
+- local secret/token file resolution
+- agent entrypoint documentation and stable service IDs
+
+Each concrete service (for example `kali-factory` or external `gpu-factory`) is responsible for:
+
+- validating job schemas
+- executing jobs safely in its own domain
+- enforcing image/tool allowlists
+- returning structured outputs and failures
+
+This separation is intentional: the parent package is the orchestration contract, services are the execution engines.
+
+### 4) GPU/CUDA service fit (why `gpu-factory` aligns)
+
+`gpu-factory` follows the same abstraction:
+
+- typed jobs (`gpu_probe`, `run_container`, `python_probe`)
+- API token auth
+- Docker-first execution with optional GPU
+- local MCP server adapter for tool parity
+
+That makes it a first-class `parallel-OS` service even when hosted externally, and keeps DGX Spark integration consistent with other runtimes.
+
+### 5) Design rules for new runtimes
+
+Any new runtime should satisfy all of the following before being listed as "running":
+
+- **Deterministic contract**: jobs are explicit and versioned
+- **Safety-first execution**: allowlist + typed args + bounded runtime
+- **Agent portability**: callable via API and MCP
+- **Manifest compatibility**: zero hardcoded URLs in agent logic
+- **Host viability**: verified on target host class (for example DGX Spark, EC2, bare metal)
+
 ## Status
 
 Early design phase. v0.0.1 was the architecture skeleton. v0.0.2 wires Kali Factory in as the first concrete service via submodule + manifest. v0.1 will be the first runtime end-to-end with the SDK fully functional.
