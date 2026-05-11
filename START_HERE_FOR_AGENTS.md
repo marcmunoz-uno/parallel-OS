@@ -80,6 +80,18 @@ A common pattern: use one runtime to gather, another to analyze.
 
 Each call goes to the right service through the same MCP-or-HTTP discovery flow. Cross-service plumbing is your job — parallel-OS doesn't pipe between them automatically.
 
+### Runtime mesh config (recommended)
+
+If the operator enables runtime-mesh routing, read:
+
+- `services/RUNTIME_MESH.template.yaml` (or its deployed equivalent)
+- `services/schemas/runtime-mesh.schema.json`
+- `services/schemas/artifact-envelope.schema.json`
+
+Use capability tags (`recon`, `gpu`, `build`, etc.) as routing signals. Do not assume fixed OS names. Runtime slots may remain placeholders until explicitly enabled by the operator.
+
+Operator preflight (no agent traffic): install the package in a venv, then run `parallel-os validate --with-manifest` and `parallel-os route --caps <tags>` against your mesh file (see root `README.md`).
+
 ## When something fails
 
 Per-service status codes are documented in the per-service guides, but the cross-cutting ones:

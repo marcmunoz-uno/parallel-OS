@@ -147,6 +147,56 @@ Any new runtime should satisfy all of the following before being listed as "runn
 - **Manifest compatibility**: zero hardcoded URLs in agent logic
 - **Host viability**: verified on target host class (for example DGX Spark, EC2, bare metal)
 
+## Runtime mesh starter kit (OS choices can stay variable)
+
+You do not need to finalize the full OS list before building multi-runtime logic.
+
+- Start with `services/RUNTIME_MESH.template.yaml`
+- Keep optional runtime slots disabled (`enabled: false`) until selected
+- Route by `capability_tags` rather than runtime names
+- Fill runtime names via env vars (`${OS_RUNTIME_A}`, `${OS_RUNTIME_B}`, ...)
+
+Python helpers are available in `parallel_os.mesh`:
+
+```python
+from parallel_os import load_mesh, select_runtimes
+
+mesh = load_mesh("services/RUNTIME_MESH.template.yaml")
+targets = select_runtimes(
+    mesh,
+    required_capabilities=["recon", "internet-egress"],
+)
+for target in targets:
+    print(target.service, target.runtime, target.score)
+```
+
+Schemas for validation:
+
+- `services/schemas/runtime-mesh.schema.json`
+- `services/schemas/artifact-envelope.schema.json`
+
+### Operator CLI (configure before agents)
+
+Install the package (example venv), then validate the mesh and dry-run routing:
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -e .
+
+.venv/bin/parallel-os validate \
+  --mesh services/RUNTIME_MESH.template.yaml \
+  --with-manifest
+
+.venv/bin/parallel-os route \
+  --mesh services/RUNTIME_MESH.template.yaml \
+  --caps recon,gpu
+
+# Machine-readable routing output:
+.venv/bin/parallel-os route --caps recon --json
+```
+
+Use `services/RUNTIME_MESH.yaml` once you copy from the template and customize it. `--with-manifest` ensures every **enabled** mesh service exists in `services/MANIFEST.yaml`.
+
 ## Status
 
 Early design phase. v0.0.1 was the architecture skeleton. v0.0.2 wires Kali Factory in as the first concrete service via submodule + manifest. v0.1 will be the first runtime end-to-end with the SDK fully functional.

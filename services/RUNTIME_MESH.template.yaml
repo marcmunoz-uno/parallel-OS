@@ -1,0 +1,47 @@
+# Runtime mesh template for one-agent multi-OS execution.
+#
+# Fill `runtime` and `capability_tags` entries as you decide which OS surfaces
+# to include first. Keep service IDs aligned with services/MANIFEST.yaml.
+version: 1
+
+routing_defaults:
+  max_fanout: 2
+  min_capability_overlap: 1
+
+runtimes:
+  - service: kali-factory
+    runtime: ${OS_RUNTIME_A:-kali}
+    enabled: true
+    preferred: true
+    trust_tier: trusted
+    max_parallel_jobs: 3
+    capability_tags:
+      - osint
+      - recon
+      - web-fingerprint
+      - subdomain-enum
+      - internet-egress
+    notes: Primary recon runtime.
+
+  - service: gpu-factory
+    runtime: ${OS_RUNTIME_B:-cuda-host}
+    enabled: true
+    preferred: true
+    trust_tier: trusted
+    max_parallel_jobs: 2
+    capability_tags:
+      - gpu
+      - cuda
+      - model-inference
+      - python-cuda
+    notes: GPU execution runtime.
+
+  - service: placeholder-runtime-c
+    runtime: ${OS_RUNTIME_C:-TO_BE_DEFINED}
+    enabled: false
+    preferred: false
+    trust_tier: constrained
+    max_parallel_jobs: 1
+    capability_tags:
+      - TO_BE_DEFINED
+    notes: Optional runtime slot for future OS choice.

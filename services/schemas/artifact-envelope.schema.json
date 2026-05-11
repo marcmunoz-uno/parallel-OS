@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/marcmunoz-uno/parallel-OS/services/schemas/artifact-envelope.schema.json",
+  "title": "parallel-OS Artifact Envelope",
+  "type": "object",
+  "required": [
+    "artifact_id",
+    "schema_version",
+    "content_type",
+    "source_service",
+    "source_runtime",
+    "created_at",
+    "sha256",
+    "payload_ref"
+  ],
+  "properties": {
+    "artifact_id": { "type": "string", "minLength": 1 },
+    "schema_version": { "type": "string", "minLength": 1 },
+    "content_type": { "type": "string", "minLength": 1 },
+    "source_service": { "type": "string", "minLength": 1 },
+    "source_runtime": { "type": "string", "minLength": 1 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "sensitivity": {
+      "type": "string",
+      "enum": ["public", "internal", "restricted", "secret"]
+    },
+    "labels": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "payload_ref": {
+      "type": "object",
+      "required": ["kind", "uri"],
+      "properties": {
+        "kind": { "type": "string", "enum": ["file", "object-store", "inline"] },
+        "uri": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

@@ -25,6 +25,7 @@ dependencies = [
     "mcp>=1.0",
     "anyio>=4.0",
     "structlog>=24.0",
+    "jsonschema>=4.20",
 ]
 
 [project.optional-dependencies]
