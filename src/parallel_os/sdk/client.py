@@ -23,19 +23,19 @@ class RuntimeProxy:
         # TODO: hold an MCP client session here, route attribute access to it.
 
     @property
-    def shell(self) -> "ShellProxy":
+    def shell(self) -> ShellProxy:
         return ShellProxy(self)
 
     @property
-    def fs(self) -> "FsProxy":
+    def fs(self) -> FsProxy:
         return FsProxy(self)
 
     @property
-    def pkg(self) -> "PkgProxy":
+    def pkg(self) -> PkgProxy:
         return PkgProxy(self)
 
     @property
-    def tool(self) -> "ToolProxy":
+    def tool(self) -> ToolProxy:
         return ToolProxy(self)
 
 
@@ -73,7 +73,7 @@ class ToolProxy:
     def __init__(self, runtime: RuntimeProxy) -> None:
         self._runtime = runtime
 
-    def __getattr__(self, tool_name: str) -> "ToolGroup":
+    def __getattr__(self, tool_name: str) -> ToolGroup:
         return ToolGroup(self._runtime, tool_name)
 
 
