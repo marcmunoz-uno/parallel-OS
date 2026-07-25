@@ -39,7 +39,7 @@ def _seccomp_opt(profile: str) -> list[str]:
 class DockerBackend:
     """Spawn / reap / exec against a local Docker daemon."""
 
-    def __init__(self, client: "docker.DockerClient | None" = None) -> None:
+    def __init__(self, client: docker.DockerClient | None = None) -> None:
         if client is None:
             import docker
             client = docker.from_env()
@@ -88,7 +88,7 @@ class DockerBackend:
     def reap(self, instance: RuntimeInstance, force: bool = False) -> None:
         """Stop + remove the container for an instance."""
         try:
-            container: "Container" = self._client.containers.get(instance.container_id)
+            container: Container = self._client.containers.get(instance.container_id)
             container.stop(timeout=5 if not force else 0)
             container.remove(force=True)
         except Exception as exc:
@@ -112,7 +112,7 @@ class DockerBackend:
         Returns (exit_code, stdout, stderr). Used by the MCP request handler
         to translate tool calls into shell commands inside the runtime.
         """
-        container: "Container" = self._client.containers.get(instance.container_id)
+        container: Container = self._client.containers.get(instance.container_id)
         # TODO: wire timeout via a SIGTERM watchdog; docker SDK doesn't honor it natively.
         result = container.exec_run(
             cmd=cmd,

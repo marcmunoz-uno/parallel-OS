@@ -10,12 +10,13 @@ Emits JSON on stdout (one object) so callers can parse it. Also runnable as
 `python -m parallel_os`.
 """
 from __future__ import annotations
-import sys
-import json
-import argparse
 
-from .host import Host
+import argparse
+import json
+import sys
+
 from . import runtimes
+from .host import Host
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -31,18 +32,21 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("runtimes", help="list registered runtime specs")
     sub.add_parser("list", help="list live runtimes")
     sp = sub.add_parser("spawn", help="spawn a runtime")
-    sp.add_argument("runtime"); sp.add_argument("--ttl", type=int, default=None)
+    sp.add_argument("runtime")
+    sp.add_argument("--ttl", type=int, default=None)
     sp.add_argument("--agent", default=None)
     ex = sub.add_parser("exec", help="exec a command in a runtime")
     ex.add_argument("--timeout", type=int, default=60)
-    ex.add_argument("container_id"); ex.add_argument("command", nargs=argparse.REMAINDER)
+    ex.add_argument("container_id")
+    ex.add_argument("command", nargs=argparse.REMAINDER)
     rp = sub.add_parser("reap", help="stop + remove a runtime")
     rp.add_argument("container_id")
 
     a = ap.parse_args(argv)
     out: object
     if a.cmd == "runtimes":
-        out = {k: {"image": v.image, "network": v.network_mode} for k, v in runtimes.REGISTRY.items()}
+        out = {k: {"image": v.image, "network": v.network_mode}
+               for k, v in runtimes.REGISTRY.items()}
     else:
         host = Host()
         if a.cmd == "spawn":

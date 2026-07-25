@@ -5,20 +5,23 @@ straight from the CLI and over SSH from a remote orchestrator (e.g. internet-age
 without needing the async MCP session layer wired. Spawns from the named REGISTRY.
 """
 from __future__ import annotations
+
 from typing import Any
 
-from .orchestrator.docker_backend import DockerBackend
-from .orchestrator.runtime import RuntimeSpec, RuntimeInstance
 from . import runtimes
+from .orchestrator.docker_backend import DockerBackend
+from .orchestrator.runtime import RuntimeInstance, RuntimeSpec
 
-_PLACEHOLDER = RuntimeSpec(name="_", image="", mcp_entrypoint=[])  # exec/reap only need container_id
+# exec/reap only need the container_id; the spec is a placeholder for those paths
+_PLACEHOLDER = RuntimeSpec(name="_", image="", mcp_entrypoint=[])
 
 
 class Host:
     def __init__(self) -> None:
         self.backend = DockerBackend()
 
-    def spawn(self, name: str, agent_id: str | None = None, ttl_sec: int | None = None) -> dict[str, Any]:
+    def spawn(self, name: str, agent_id: str | None = None,
+              ttl_sec: int | None = None) -> dict[str, Any]:
         spec = runtimes.get(name)
         if spec is None:
             raise ValueError(f"unknown runtime {name!r}. Available: {sorted(runtimes.REGISTRY)}")

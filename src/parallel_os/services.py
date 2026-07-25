@@ -15,7 +15,6 @@ from typing import Any
 
 import yaml
 
-
 _ENV_REF = re.compile(r"\$\{([A-Z_][A-Z0-9_]*)(?::-([^}]*))?\}")
 
 
