@@ -19,6 +19,12 @@ from . import runtimes
 
 
 def main(argv: list[str] | None = None) -> int:
+    # keep stdout pure JSON for programmatic callers; send logs to stderr
+    try:
+        import structlog
+        structlog.configure(logger_factory=structlog.PrintLoggerFactory(file=sys.stderr))
+    except Exception:
+        pass
     ap = argparse.ArgumentParser(prog="parallel-os")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
