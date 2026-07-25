@@ -21,6 +21,21 @@ if TYPE_CHECKING:
 log = structlog.get_logger()
 
 
+def _seccomp_opt(profile: str) -> list[str]:
+    """Map a RuntimeSpec.seccomp_profile to a docker security_opt.
+
+    Docker only accepts `seccomp=unconfined` or `seccomp=<path-to-json>`; the
+    built-in default profile is applied when NO seccomp opt is passed. So:
+      "default"/""  -> []                       (docker's hardened default)
+      "unconfined"  -> ["seccomp=unconfined"]
+      "<path.json>" -> ["seccomp=<path.json>"]
+    (Previously passed `seccomp=default`, which docker rejects — a 500 on start.)
+    """
+    if profile in ("", "default"):
+        return []
+    return [f"seccomp={profile}"]
+
+
 class DockerBackend:
     """Spawn / reap / exec against a local Docker daemon."""
 
@@ -49,7 +64,7 @@ class DockerBackend:
             nano_cpus=int(spec.cpu_quota * 1_000_000_000),
             read_only=True,
             tmpfs={"/tmp": "rw,size=512m", spec.workdir: "rw,size=2g"},
-            security_opt=[f"seccomp={spec.seccomp_profile}"] if spec.seccomp_profile != "unconfined" else [],
+            security_opt=_seccomp_opt(spec.seccomp_profile),
             remove=False,  # explicit GC; let orchestrator reap
             labels={
                 "parallel-os.runtime": spec.name,
